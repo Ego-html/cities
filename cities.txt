@@ -1,0 +1,7 @@
+[
+  { "name": "Москва", "founded": 1147 },
+  { "name": "Рим", "founded": 753 },
+  { "name": "Каир", "founded": 970 },
+  { "name": "Пекин", "founded": 1046 },
+  { "name": "Лондон", "founded": 43 }
+]
