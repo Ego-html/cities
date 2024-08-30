@@ -3,6 +3,117 @@ import CityList from '../models/CityList';
 
 const router = Router();
 
+// Добавление нового города в список
+router.post('/cities', async (req: Request, res: Response) => {
+    try {
+        const { userId, name, country, yearFounded } = req.body;
+
+        // Поиск или создание списка городов для пользователя
+        let cityList = await CityList.findOne({ userId });
+
+        if (!cityList) {
+            cityList = new CityList({ userId, name: 'Default List' }); // Название списка можно изменить
+            console.log('Created new city list for user:', userId);
+        }
+
+        // Добавление нового города в список
+        cityList.cities.push({ name, country, yearFounded });
+
+        await cityList.save();
+        res.status(201).json(cityList);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка добавления города' });
+    }
+});
+
+// Получение всех городов для пользователя
+router.get('/cities/:userId', async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        const cityList = await CityList.findOne({ userId });
+
+        if (!cityList) {
+            return res.status(404).json({ error: 'Список городов не найден' });
+        }
+
+        res.status(200).json(cityList.cities);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка получения списка городов' });
+    }
+});
+
+// Обновление города по имени
+router.put('/cities/:userId/:cityName', async (req: Request, res: Response) => {
+    const { userId, cityName } = req.params;
+    const { name, country, yearFounded } = req.body;
+
+    try {
+        // Найти список городов по userId
+        const cityList = await CityList.findOne({ userId });
+
+        if (!cityList) {
+            return res.status(404).json({ error: 'Список городов не найден' });
+        }
+
+        // Найти город по имени в массиве cities
+        let cityFound = false;
+        for (const city of cityList.cities) {
+            if (city.name === cityName) {
+                // Обновление данных города
+                city.name = name;
+                city.country = country;
+                city.yearFounded = yearFounded;
+                cityFound = true;
+                break;
+            }
+        }
+
+        if (!cityFound) {
+            return res.status(404).json({ error: 'Город не найден' });
+        }
+
+        // Сохранение обновленного списка городов
+        await cityList.save();
+        res.status(200).json(cityList);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка обновления города' });
+    }
+});
+
+// Удаление города по имени
+router.delete('/cities/:userId/:cityName', async (req: Request, res: Response) => {
+    const { userId, cityName } = req.params;
+
+    try {
+        const cityList = await CityList.findOne({ userId });
+
+        if (!cityList) {
+            return res.status(404).json({ error: 'Список городов не найден' });
+        }
+
+        // Найти и удалить город по имени в массиве cities
+        let cityFound = false;
+        for (let i = 0; i < cityList.cities.length; i++) {
+            if (cityList.cities[i].name === cityName) {
+                cityList.cities.splice(i, 1);
+                cityFound = true;
+                break;
+            }
+        }
+
+        if (!cityFound) {
+            return res.status(404).json({ error: 'Город не найден' });
+        }
+
+        // Сохранение обновленного списка городов
+        await cityList.save();
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка удаления города' });
+    }
+});
+
+// Создание нового списка городов
 router.post('/', async (req: Request, res: Response) => {
     try {
         const { userId, name, cities } = req.body;
@@ -14,6 +125,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 });
 
+// Получение всех списков городов для пользователя
 router.get('/:userId', async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
@@ -24,25 +136,29 @@ router.get('/:userId', async (req: Request, res: Response) => {
     }
 });
 
-router.put('/:id', async (req: Request, res: Response) => {
+// Обновление списка городов
+router.put('/:userId', async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
-        const updatedCityList = await CityList.findByIdAndUpdate(id, req.body, { new: true });
-        res.status(200).json(updatedCityList);
+        const { userId } = req.params;
+        const updates = req.body;
+
+        // Обновление всех списков городов для пользователя
+        const updatedCityLists = await CityList.updateMany({ userId }, updates, { new: true });
+        res.status(200).json(updatedCityLists);
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка редактирования списка городов' });
+        res.status(500).json({ error: 'Ошибка редактирования списков городов' });
     }
 });
 
-router.delete('/:id', async (req: Request, res: Response) => {
+// Удаление списка городов
+router.delete('/:userId', async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
-        await CityList.findByIdAndDelete(id);
+        const { userId } = req.params;
+        await CityList.deleteMany({ userId });
         res.status(204).send();
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка удаления списка городов' });
+        res.status(500).json({ error: 'Ошибка удаления списков городов' });
     }
 });
 
 export default router;
-
