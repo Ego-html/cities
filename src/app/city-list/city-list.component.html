@@ -1,37 +1,8 @@
 <div>
-  <h2>Create a New City List</h2>
-  <form (ngSubmit)="submitCityList()">
-    <label>List Name:</label>
-    <input type="text" [(ngModel)]="newCityList.name" name="name" required>
-
-    <label >City Name:</label>
-    <input type="text" [(ngModel)]="newCity.name" name="city" required>
-
-    <label >Founded Date:</label>
-    <input type="text" [(ngModel)]="newCity.founded" name="founded" required>
-
-    <button type="button" (click)="addCity()">Add City</button>
-
-    <ul>
-      <li *ngFor="let city of newCityList.cities">
-        {{ city.name }} (Founded: {{ city.founded }})
-      </li>
-    </ul>
-
-    <button type="submit">Save List</button>
-  </form>
-</div>
-
-<div>
   <h2>City Lists</h2>
   <ul>
-    <li *ngFor="let cityList of cityLists">
-      {{ cityList.name }} - Cities:
-      <ul>
-        <li *ngFor="let city of cityList.cities">
-          {{ city.name }} (Founded: {{ city.founded }})
-        </li>
-      </ul>
+    <li *ngFor="let city of cities">
+      {{ city.name }} (Founded: {{ city.founded }})
     </li>
   </ul>
 </div>

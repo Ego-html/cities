@@ -1,71 +1,31 @@
 import { Injectable } from '@angular/core';
-import { Observable, from, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 interface City {
   name: string;
-  founded: string; // Добавляем поле для даты основания
-}
-
-interface CityList {
-  userId: string;
-  name: string;
-  cities: City[];
+  founded: string; // Поле для даты основания
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class CityListService {
-  private apiUrl = 'http://localhost:3000/api/city-lists';
+  private apiUrl = 'http://localhost:3000/api/cities'; // Базовый URL для API
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
-  private handleError(error: any): Observable<never> {
-    console.error('An error occurred', error);
-    return of(); // Возвращаем пустой Observable в случае ошибки
+  // Получение всех городов
+  getCities(): Observable<City[]> {
+    return this.http.get<City[]>(this.apiUrl)
+      .pipe(catchError(this.handleError<City[]>('getCities', [])));
   }
 
-  // Создание списка городов
-  createCityList(cityList: CityList): Observable<CityList> {
-    return from(fetch(this.apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cityList)
-    }).then(response => response.json()))
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  // Получение списка городов по userId
-  getCityLists(userId: string): Observable<CityList[]> {
-    return from(fetch(`${this.apiUrl}?userId=${userId}`)
-      .then(response => response.json()))
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  // Обновление списка городов по id
-  updateCityList(id: string, cityList: Partial<CityList>): Observable<CityList> {
-    return from(fetch(`${this.apiUrl}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cityList)
-    }).then(response => response.json()))
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  // Удаление списка городов по id
-  deleteCityList(id: string): Observable<void> {
-    return from(fetch(`${this.apiUrl}/${id}`, {
-      method: 'DELETE'
-    }).then(() => {}))
-      .pipe(
-        catchError(this.handleError)
-      );
+  private handleError<T>(operation = 'operation', result?: T) {
+    return (error: any): Observable<T> => {
+      console.error(`${operation} failed: ${error.message}`);
+      return of(result as T);
+    };
   }
 }

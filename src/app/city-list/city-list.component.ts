@@ -1,52 +1,38 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 import { CityListService } from '../city-list.service';
-import { NgForOf, NgIf } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {FormsModule} from "@angular/forms";
+import {NgForOf, NgIf} from "@angular/common"; // Убедитесь, что путь правильный
+
+interface City {
+  name: string;
+  founded: string;
+}
 
 @Component({
   selector: 'app-city-list',
   templateUrl: './city-list.component.html',
   standalone: true,
   imports: [
+    FormsModule,
     NgIf,
     NgForOf,
-    FormsModule
+    HttpClientModule
   ],
   styleUrls: ['./city-list.component.css']
 })
 export class CityListComponent implements OnInit {
-  cityLists: any[] = [];
-  newCityList: any = { userId: '', name: '', cities: [] };
-  newCity: any = { name: '', founded: '' };
+  cities: City[] = []; // Убедитесь, что тип совпадает с интерфейсом City
 
   constructor(private cityListService: CityListService) {}
 
-  ngOnInit(): void {
-    this.fetchCityLists();
+  ngOnInit() {
+    this.loadCities();
   }
 
-  fetchCityLists(): void {
-    this.cityListService.getCityLists('user-id') // Замените 'user-id' на реальный userId
-      .subscribe(data => this.cityLists = data);
-  }
-
-  addCity(): void {
-    if (this.newCity.name && this.newCity.founded) {
-      this.newCityList.cities.push({ ...this.newCity });
-      this.newCity = { name: '', founded: '' }; // Сброс полей ввода
-    }
-  }
-
-  submitCityList(): void {
-    this.cityListService.createCityList(this.newCityList)
-      .subscribe(() => {
-        this.fetchCityLists();
-        this.newCityList = { userId: '', name: '', cities: [] };
-      });
-  }
-
-  deleteCityList(id: string): void {
-    this.cityListService.deleteCityList(id)
-      .subscribe(() => this.fetchCityLists());
+  loadCities() {
+    this.cityListService.getCities().subscribe((data: City[]) => {
+      this.cities = data;
+    });
   }
 }
